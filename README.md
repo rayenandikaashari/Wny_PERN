@@ -10,15 +10,15 @@ Aplikasi web Warung Nenek Yoyoh menggunakan React untuk frontend, Express.js unt
 
 
 
-\- \*\*Frontend:\*\* React, Vite, Tailwind CSS
+- **Frontend:** React, Vite, Tailwind CSS
 
-\- \*\*Backend:\*\* Node.js, Express.js
+- **Backend:** Node.js, Express.js
 
-\- \*\*Database:\*\* PostgreSQL
+- **Database:** PostgreSQL
 
-\- \*\*Database driver:\*\* node-postgres (`pg`)
+- **Database driver:** node-postgres (`pg`)
 
-\- \*\*Migration:\*\* node-pg-migrate
+- **Migration:** node-pg-migrate
 
 
 
@@ -30,11 +30,11 @@ Pastikan perangkat sudah memiliki:
 
 
 
-\- Node.js dan npm
+- Node.js dan npm
 
-\- PostgreSQL
+- PostgreSQL
 
-\- Git
+- Git
 
 
 
@@ -58,7 +58,7 @@ Warung Nenek Yoyoh/
 
 │   ├── package.json
 
-│   └── database\_schema.sql
+│   └── database_schema.sql
 
 ├── frontend/
 
@@ -106,15 +106,15 @@ Contoh format `.env`:
 
 ```env
 
-DB\_HOST=localhost
+DB_HOST=localhost
 
-DB\_PORT=5432
+DB_PORT=5432
 
-DB\_NAME=warung\_nenek\_yoyoh
+DB_NAME=warung_nenek_yoyoh
 
-DB\_USER=app\_wny
+DB_USER=app_wny
 
-DB\_PASSWORD=isi\_password\_database
+DB_PASSWORD=isi_password_database
 
 ```
 
@@ -128,7 +128,7 @@ Sesuaikan nilainya dengan PostgreSQL masing-masing.
 
 
 
-Buat database PostgreSQL kosong dengan nama yang sesuai dengan `DB\_NAME` pada `.env`.
+Buat database PostgreSQL kosong dengan nama yang sesuai dengan `DB_NAME` pada `.env`.
 
 
 
@@ -252,7 +252,7 @@ Perintah backend dijalankan dari folder `backend`, sedangkan perintah frontend d
 
 
 
-\*\*Perhatian:\*\* Jangan menjalankan `migrate:down` pada database utama tanpa memahami dampaknya. Perintah tersebut dapat menghapus tabel yang dibuat oleh migration.
+**Perhatian:** Jangan menjalankan `migrate:down` pada database utama tanpa memahami dampaknya. Perintah tersebut dapat menghapus tabel yang dibuat oleh migration.
 
 
 
@@ -260,13 +260,13 @@ Perintah backend dijalankan dari folder `backend`, sedangkan perintah frontend d
 
 
 
-\- Jangan commit file `.env` ke repository.
+- Jangan commit file `.env` ke repository.
 
-\- Jangan membagikan password database.
+- Jangan membagikan password database.
 
-\- Jangan commit `node\_modules`.
+- Jangan commit `node_modules`.
 
-\- File backup database dapat berisi data sensitif. Bagikan hanya jika diperlukan dan diizinkan.
+- File backup database dapat berisi data sensitif. Bagikan hanya jika diperlukan dan diizinkan.
 
-\- Gunakan database pengujian untuk menguji migration sebelum menerapkannya pada database yang berisi data penting.
+- Gunakan database pengujian untuk menguji migration sebelum menerapkannya pada database yang berisi data penting.
 
