@@ -1,4 +1,4 @@
-\# Warung Nenek Yoyoh
+# Warung Nenek Yoyoh
 
 
 
@@ -6,7 +6,7 @@ Aplikasi web Warung Nenek Yoyoh menggunakan React untuk frontend, Express.js unt
 
 
 
-\## Teknologi
+## Teknologi
 
 
 
@@ -22,7 +22,7 @@ Aplikasi web Warung Nenek Yoyoh menggunakan React untuk frontend, Express.js unt
 
 
 
-\## Persyaratan
+## Persyaratan
 
 
 
@@ -38,7 +38,7 @@ Pastikan perangkat sudah memiliki:
 
 
 
-\## Struktur Proyek
+## Struktur Proyek
 
 
 
@@ -74,7 +74,7 @@ Warung Nenek Yoyoh/
 
 
 
-\## Instalasi
+## Instalasi
 
 
 
@@ -82,7 +82,7 @@ Clone repository sesuai URL repository tim, lalu masuk ke folder proyek.
 
 
 
-\### 1. Instalasi Backend
+### 1. Instalasi Backend
 
 
 
@@ -124,7 +124,7 @@ Sesuaikan nilainya dengan PostgreSQL masing-masing.
 
 
 
-\### 2. Siapkan Database
+### 2. Siapkan Database
 
 
 
@@ -136,7 +136,7 @@ Pastikan pengguna database mempunyai izin untuk membuat tabel dan menjalankan mi
 
 
 
-\### 3. Jalankan Migration
+### 3. Jalankan Migration
 
 
 
@@ -160,7 +160,7 @@ Jalankan perintah ini pada database baru yang masih kosong. Untuk database yang 
 
 
 
-\### 4. Isi Data Awal
+### 4. Isi Data Awal
 
 
 
@@ -180,7 +180,7 @@ Seeder saat ini menambahkan tiga barang contoh hanya jika tabel `barang` masih k
 
 
 
-\### 5. Jalankan Backend
+### 5. Jalankan Backend
 
 
 
@@ -200,7 +200,7 @@ Backend berjalan sesuai konfigurasi server di `index.js`.
 
 
 
-\### 6. Instalasi dan Jalankan Frontend
+### 6. Instalasi dan Jalankan Frontend
 
 
 
@@ -224,7 +224,7 @@ Buka alamat lokal yang ditampilkan oleh Vite pada terminal.
 
 
 
-\## Perintah Penting
+## Perintah Penting
 
 
 
@@ -256,7 +256,7 @@ Perintah backend dijalankan dari folder `backend`, sedangkan perintah frontend d
 
 
 
-\## Catatan Keamanan
+## Catatan Keamanan
 
 
 
