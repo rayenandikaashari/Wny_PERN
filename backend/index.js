@@ -190,6 +190,79 @@ app.post('/api/barang', autentikasiAdmin, async (req, res) => {
   }
 });
 
+// EDIT BARANG
+app.put('/api/barang/:id', autentikasiAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    const {
+      nama,
+      kategori,
+      harga,
+      stok,
+      satuan,
+      foto,
+      deskripsi,
+    } = req.body;
+
+    if (
+      !Number.isSafeInteger(id) ||
+      id <= 0 ||
+      typeof nama !== 'string' ||
+      !nama.trim() ||
+      typeof kategori !== 'string' ||
+      !kategori.trim() ||
+      harga == null ||
+      !Number.isFinite(Number(harga)) ||
+      Number(harga) < 0 ||
+      !Number.isSafeInteger(Number(stok ?? 0)) ||
+      Number(stok ?? 0) < 0
+    ) {
+      return res.status(400).json({
+        message: 'Data barang tidak valid.',
+      });
+    }
+
+    const result = await db.query(
+      `UPDATE barang
+       SET nama = $1,
+           kategori = $2,
+           harga = $3,
+           stok = $4,
+           satuan = $5,
+           foto = $6,
+           deskripsi = $7,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $8
+       RETURNING *`,
+      [
+        nama.trim(),
+        kategori.trim(),
+        Number(harga),
+        Number(stok ?? 0),
+        satuan ?? 'pcs',
+        foto ?? null,
+        deskripsi ?? null,
+        id,
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: 'Barang tidak ditemukan.',
+      });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Gagal memperbarui barang:', error.message);
+
+    res.status(500).json({
+      message: 'Gagal memperbarui barang.',
+    });
+  }
+});
+
 // ========================
 // TRANSAKSI DATABASE
 // ========================

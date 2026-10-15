@@ -57,6 +57,21 @@ function App() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [detikTersisa, setDetikTersisa] = useState(0);
   const [memuatStatus, setMemuatStatus] = useState(false);
+  const [formBarang, setFormBarang] = useState({
+    nama: '',
+    kategori: '',
+    harga: '',
+    stok: '',
+    satuan: 'pcs',
+    foto: '',
+    deskripsi: '',
+  });
+  const [barangEditId, setBarangEditId] = useState(null);
+
+  const [tambahBarangLoading, setTambahBarangLoading] = useState(false);
+  const [tambahBarangError, setTambahBarangError] = useState('');
+  const [tambahBarangPesan, setTambahBarangPesan] = useState('');
+
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [adminToken, setAdminToken] = useState('');
@@ -337,6 +352,128 @@ async function ambilPesananAdmin(token = adminToken) {
     setAdminLoading(false);
   }
 }
+
+async function tambahBarang(event) {
+  event.preventDefault();
+
+  if (!adminToken) {
+    setTambahBarangError('Silakan login sebagai admin.');
+    return;
+  }
+
+  setTambahBarangLoading(true);
+  setTambahBarangError('');
+  setTambahBarangPesan('');
+
+  try {
+    const response = await fetch(API_BARANG, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({
+        ...formBarang,
+        harga: Number(formBarang.harga),
+        stok: Number(formBarang.stok),
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Gagal menambahkan barang.');
+    }
+
+    setTambahBarangPesan('Barang berhasil ditambahkan.');
+
+    setFormBarang({
+      nama: '',
+      kategori: '',
+      harga: '',
+      stok: '',
+      satuan: 'pcs',
+      foto: '',
+      deskripsi: '',
+    });
+
+    await ambilBarang();
+  } catch (error) {
+    setTambahBarangError(
+      error.message || 'Tidak dapat menghubungi backend.'
+    );
+  } finally {
+    setTambahBarangLoading(false);
+  }
+}
+
+
+const mulaiEditBarang = (barang) => {
+  setBarangEditId(barang.id);
+
+  setFormBarang({
+    nama: barang.nama ?? '',
+    kategori: barang.kategori ?? '',
+    harga: String(barang.harga ?? ''),
+    stok: String(barang.stok ?? ''),
+    satuan: barang.satuan ?? '',
+    foto: barang.foto ?? '',
+    deskripsi: barang.deskripsi ?? '',
+  });
+
+  setTambahBarangError('');
+  setTambahBarangPesan('');
+};
+
+const simpanEditBarang = async (event) => {
+  event.preventDefault();
+
+  if (!barangEditId) return;
+
+  setTambahBarangLoading(true);
+  setTambahBarangError('');
+  setTambahBarangPesan('');
+
+  try {
+    const response = await fetch(`${API_BARANG}/${barangEditId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({
+        ...formBarang,
+        harga: Number(formBarang.harga),
+        stok: Number(formBarang.stok),
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Gagal memperbarui barang.');
+    }
+
+    await ambilBarang();
+
+    setBarangEditId(null);
+    setFormBarang({
+      nama: '',
+      kategori: '',
+      harga: '',
+      stok: '',
+      satuan: '',
+      foto: '',
+      deskripsi: '',
+    });
+
+    setTambahBarangPesan('Barang berhasil diperbarui!');
+  } catch (error) {
+    setTambahBarangError(error.message || 'Terjadi kesalahan.');
+  } finally {
+    setTambahBarangLoading(false);
+  }
+};
 
 async function ubahStatusPesanan(pesanan, statusBaru) {
   const konfirmasi = {
@@ -641,8 +778,265 @@ function logoutAdmin() {
                 (p) => p.status === 'menunggu_konfirmasi'
               ).length}
             </p>
+          </div>     
+      </div>
+      
+{/* DAFTAR BARANG ADMIN */}
+<div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+    <div>
+      <h3 className="text-xl font-bold">Kelola Barang</h3>
+      <p className="mt-1 text-sm text-slate-500">
+        Pilih barang untuk mengubah informasi produk.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      onClick={() => {
+        setBarangEditId(null);
+        setFormBarang({
+          nama: '',
+          kategori: '',
+          harga: '',
+          stok: '',
+          satuan: 'pcs',
+          foto: '',
+          deskripsi: '',
+        });
+        setTambahBarangError('');
+        setTambahBarangPesan('');
+      }}
+      className="w-full rounded-xl bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800 sm:w-auto"
+    >
+      + Barang Baru
+    </button>
+  </div>
+
+  <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+    {barang.length === 0 ? (
+      <p className="rounded-xl bg-slate-50 p-4 text-slate-500 md:col-span-2 xl:col-span-3">
+        Belum ada barang di katalog.
+      </p>
+    ) : (
+      barang.map((item) => (
+        <div
+          key={item.id}
+          className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-emerald-300 hover:bg-emerald-50/30"
+        >
+          <div className="flex min-w-0 items-center gap-3">
+            {item.foto ? (
+              <img
+                src={item.foto}
+                alt={item.nama}
+                className="h-14 w-14 shrink-0 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-2xl">
+                🛒
+              </div>
+            )}
+
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-slate-800">
+                {item.nama}
+              </p>
+              <p className="truncate text-sm text-slate-500">
+                {item.kategori}
+              </p>
+              <p className="text-xs text-slate-500">
+                Stok: {item.stok} {item.satuan}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-emerald-700">
+                {formatRupiah(item.harga)}
+              </p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => mulaiEditBarang(item)}
+            className="shrink-0 rounded-lg border border-emerald-700 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-700 hover:text-white"
+          >
+            Edit
+          </button>
         </div>
+      ))
+    )}
+  </div>
+</div>
+        
+{/* FORM TAMBAH BARANG */}
+<div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <h3 className="text-xl font-bold">
+  {barangEditId ? 'Edit Barang' : 'Tambah Barang'}
+</h3>
+  <p className="mt-1 text-sm text-slate-500">
+  {barangEditId
+    ? 'Ubah informasi barang yang dipilih.'
+    : 'Tambahkan produk baru ke katalog warung.'}
+</p>
+
+  <form
+  onSubmit={barangEditId ? simpanEditBarang : tambahBarang}
+  className="mt-5 space-y-4"
+>
+    <div className="grid gap-4 sm:grid-cols-2">
+      <div>
+        <label className="mb-2 block font-medium">Nama Barang</label>
+        <input
+          value={formBarang.nama}
+          onChange={(e) =>
+            setFormBarang({ ...formBarang, nama: e.target.value })
+          }
+          required
+          className="w-full rounded-xl border border-slate-300 px-4 py-3"
+          placeholder="Contoh: Gula Pasir"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block font-medium">Kategori</label>
+        <input
+          value={formBarang.kategori}
+          onChange={(e) =>
+            setFormBarang({ ...formBarang, kategori: e.target.value })
+          }
+          required
+          className="w-full rounded-xl border border-slate-300 px-4 py-3"
+          placeholder="Contoh: Sembako"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block font-medium">Harga (Rp)</label>
+        <input
+          type="number"
+          min="1"
+          step="1"
+          value={formBarang.harga}
+          onChange={(e) =>
+            setFormBarang({ ...formBarang, harga: e.target.value })
+          }
+          required
+          className="w-full rounded-xl border border-slate-300 px-4 py-3"
+          placeholder="Contoh: 15000"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block font-medium">Stok</label>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          value={formBarang.stok}
+          onChange={(e) =>
+            setFormBarang({ ...formBarang, stok: e.target.value })
+          }
+          required
+          className="w-full rounded-xl border border-slate-300 px-4 py-3"
+          placeholder="Contoh: 20"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block font-medium">Satuan</label>
+        <select
+          value={formBarang.satuan}
+          onChange={(e) =>
+            setFormBarang({ ...formBarang, satuan: e.target.value })
+          }
+          required
+          className="w-full rounded-xl border border-slate-300 px-4 py-3"
+        >
+          <option value="pcs">pcs</option>
+          <option value="kg">kg</option>
+          <option value="liter">liter</option>
+          <option value="bungkus">bungkus</option>
+          <option value="pack">pack</option>
+          <option value="botol">botol</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="mb-2 block font-medium">URL Foto (opsional)</label>
+        <input
+          type="url"
+          value={formBarang.foto}
+          onChange={(e) =>
+            setFormBarang({ ...formBarang, foto: e.target.value })
+          }
+          className="w-full rounded-xl border border-slate-300 px-4 py-3"
+          placeholder="https://..."
+        />
+      </div>
+    </div>
+
+    <div>
+      <label className="mb-2 block font-medium">Deskripsi (opsional)</label>
+      <textarea
+        value={formBarang.deskripsi}
+        onChange={(e) =>
+          setFormBarang({ ...formBarang, deskripsi: e.target.value })
+        }
+        rows={3}
+        className="w-full rounded-xl border border-slate-300 px-4 py-3"
+        placeholder="Keterangan barang..."
+      />
+    </div>
+
+    {tambahBarangError && (
+      <p role="alert" className="rounded-xl bg-red-50 p-3 text-red-700">
+        {tambahBarangError}
+      </p>
+    )}
+
+    {tambahBarangPesan && (
+      <p role="status" className="rounded-xl bg-emerald-50 p-3 text-emerald-700">
+        {tambahBarangPesan}
+      </p>
+    )}
+
+    <div className="flex flex-wrap gap-3">
+  <button
+    type="submit"
+    disabled={tambahBarangLoading}
+    className="rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+  >
+    {tambahBarangLoading
+      ? 'Menyimpan...'
+      : barangEditId
+        ? 'Simpan Perubahan'
+        : 'Tambah Barang'}
+  </button>
+
+  {barangEditId && (
+    <button
+      type="button"
+      onClick={() => {
+        setBarangEditId(null);
+        setFormBarang({
+          nama: '',
+          kategori: '',
+          harga: '',
+          stok: '',
+          satuan: 'pcs',
+          foto: '',
+          deskripsi: '',
+        });
+        setTambahBarangError('');
+        setTambahBarangPesan('');
+      }}
+      className="rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-100"
+    >
+      Batal Edit
+    </button>
+  )}
+</div>
+  </form>
+</div>
+
 
         {/* DAFTAR PESANAN */}
         <div className="mt-6 space-y-4">
