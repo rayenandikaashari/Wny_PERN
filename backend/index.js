@@ -136,7 +136,7 @@ app.get('/api/barang', async (req, res) => {
   }
 });
 
-app.post('/api/barang', async (req, res) => {
+app.post('/api/barang', autentikasiAdmin, async (req, res) => {
   try {
     const {
       nama,
@@ -744,6 +744,124 @@ app.post(
     });
   }
 });
+
+app.patch(
+  '/api/admin/pesanan/:kode/status',
+  autentikasiAdmin,
+  async (req, res) => {
+    try {
+      const { status } = req.body;
+
+      const statusDiizinkan = ['selesai', 'dibatalkan'];
+
+      if (!statusDiizinkan.includes(status)) {
+        return res.status(400).json({
+          message: 'Status tujuan tidak valid.',
+        });
+      }
+
+      const result = await withTransaction(async (client) => {
+        const orderResult = await client.query(
+          `SELECT *
+           FROM pesanan
+           WHERE kode_pesanan = $1
+           FOR UPDATE`,
+          [req.params.kode]
+        );
+
+        const order = orderResult.rows[0];
+
+        if (!order) {
+          const error = new Error('Pesanan tidak ditemukan.');
+          error.statusCode = 404;
+          throw error;
+        }
+
+        if (order.status === 'selesai' || order.status === 'dibatalkan') {
+          const error = new Error(
+            'Pesanan sudah berstatus final dan tidak dapat diubah.'
+          );
+          error.statusCode = 409;
+          throw error;
+        }
+
+        if (status === 'selesai' && order.status !== 'diproses') {
+          const error = new Error(
+            'Hanya pesanan yang sedang diproses yang dapat diselesaikan.'
+          );
+          error.statusCode = 409;
+          throw error;
+        }
+
+        if (
+          status === 'dibatalkan' &&
+          !['menunggu_pembayaran', 'menunggu_konfirmasi'].includes(
+            order.status
+          )
+        ) {
+          const error = new Error(
+            'Pesanan ini tidak dapat dibatalkan melalui tindakan ini.'
+          );
+          error.statusCode = 409;
+          throw error;
+        }
+
+        if (status === 'dibatalkan') {
+          await client.query(
+            `UPDATE barang AS b
+             SET stok = b.stok + r.jumlah,
+                 updated_at = NOW()
+             FROM reservasi_stok AS r
+             WHERE r.pesanan_id = $1
+               AND r.barang_id = b.id
+               AND r.status = 'aktif'`,
+            [order.id]
+          );
+
+          await client.query(
+            `UPDATE reservasi_stok
+             SET status = 'dilepas',
+                 diperbarui_pada = NOW()
+             WHERE pesanan_id = $1
+               AND status = 'aktif'`,
+            [order.id]
+          );
+        }
+
+        const updatedResult = await client.query(
+          `UPDATE pesanan
+           SET status = $1,
+               batas_waktu = NULL,
+               diperbarui_pada = NOW()
+           WHERE id = $2
+           RETURNING *`,
+          [status, order.id]
+        );
+
+        return updatedResult.rows[0];
+      });
+
+      return res.json({
+        message: 'Status pesanan berhasil diperbarui.',
+        pesanan: {
+          kode_pesanan: result.kode_pesanan,
+          status: result.status,
+          metode_pembayaran: result.metode_pembayaran,
+          total: result.total,
+        },
+      });
+    } catch (error) {
+      console.error('Perubahan status pesanan gagal:', error.message);
+
+      return res.status(error.statusCode || 500).json({
+        message: error.statusCode
+          ? error.message
+          : 'Perubahan status pesanan gagal.',
+      });
+    }
+  }
+);
+
 
 // ========================
 // PROSES KEDALUWARSA OTOMATIS

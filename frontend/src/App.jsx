@@ -338,6 +338,44 @@ async function ambilPesananAdmin(token = adminToken) {
   }
 }
 
+async function ubahStatusPesanan(pesanan, statusBaru) {
+  const konfirmasi = {
+    selesai: `Tandai pesanan ${pesanan.kode_pesanan} sebagai selesai?`,
+    dibatalkan: `Batalkan pesanan ${pesanan.kode_pesanan}? Stok reservasi aktif akan dikembalikan.`,
+  };
+
+  if (!window.confirm(konfirmasi[statusBaru])) return;
+
+  setAdminLoading(true);
+  setAdminError('');
+
+  try {
+    const response = await fetch(
+      `${API}/admin/pesanan/${encodeURIComponent(pesanan.kode_pesanan)}/status`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ status: statusBaru }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Gagal mengubah status pesanan.');
+    }
+
+    await ambilPesananAdmin(adminToken);
+  } catch (err) {
+    setAdminError(err.message || 'Terjadi kesalahan.');
+  } finally {
+    setAdminLoading(false);
+  }
+}
+
 function logoutAdmin() {
   setAdminToken('');
   setAdminUsername('');
@@ -461,6 +499,7 @@ function logoutAdmin() {
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
 
+
 {/* ================= ADMIN ================= */}
 {halaman === 'admin' && (
   <section className="mx-auto max-w-5xl">
@@ -532,6 +571,7 @@ function logoutAdmin() {
       </div>
     ) : (
       <>
+        {/* HEADER ADMIN */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <p className="font-semibold text-emerald-700">
@@ -553,6 +593,7 @@ function logoutAdmin() {
             >
               {adminLoading ? 'Memuat...' : 'Refresh'}
             </button>
+
             <button
               onClick={logoutAdmin}
               className="rounded-xl bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700"
@@ -563,11 +604,15 @@ function logoutAdmin() {
         </div>
 
         {adminError && (
-          <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-red-700">
+          <p
+            role="alert"
+            className="mt-5 rounded-xl bg-red-50 p-4 text-red-700"
+          >
             {adminError}
           </p>
         )}
 
+        {/* STATISTIK */}
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <p className="text-sm text-slate-500">Total Pesanan</p>
@@ -575,16 +620,22 @@ function logoutAdmin() {
               {adminPesanan.length}
             </p>
           </div>
+
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
-            <p className="text-sm text-slate-500">Menunggu Pembayaran</p>
+            <p className="text-sm text-slate-500">
+              Menunggu Pembayaran
+            </p>
             <p className="mt-2 text-3xl font-bold text-amber-600">
               {adminPesanan.filter(
                 (p) => p.status === 'menunggu_pembayaran'
               ).length}
             </p>
           </div>
+
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
-            <p className="text-sm text-slate-500">Menunggu Konfirmasi COD</p>
+            <p className="text-sm text-slate-500">
+              Menunggu Konfirmasi COD
+            </p>
             <p className="mt-2 text-3xl font-bold text-blue-600">
               {adminPesanan.filter(
                 (p) => p.status === 'menunggu_konfirmasi'
@@ -593,6 +644,7 @@ function logoutAdmin() {
           </div>
         </div>
 
+        {/* DAFTAR PESANAN */}
         <div className="mt-6 space-y-4">
           {adminPesanan.length === 0 && !adminLoading ? (
             <div className="rounded-2xl bg-white p-8 text-center text-slate-500">
@@ -604,23 +656,30 @@ function logoutAdmin() {
                 key={pesanan.id}
                 className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
               >
+                {/* INFORMASI PESANAN */}
                 <div className="flex flex-col justify-between gap-3 sm:flex-row">
                   <div>
                     <p className="break-all font-bold text-emerald-700">
                       {pesanan.kode_pesanan}
                     </p>
+
                     <p className="mt-1 text-sm text-slate-500">
                       {pesanan.metode_pembayaran} ·{' '}
-                      {new Date(pesanan.dibuat_pada).toLocaleString('id-ID')}
+                      {new Date(
+                        pesanan.dibuat_pada
+                      ).toLocaleString('id-ID')}
                     </p>
                   </div>
+
                   <span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold">
                     {labelStatus(pesanan.status)}
                   </span>
                 </div>
 
+                {/* RINCIAN BARANG */}
                 <div className="mt-4 border-t border-slate-100 pt-4">
                   <p className="text-sm text-slate-500">Barang</p>
+
                   <ul className="mt-2 space-y-1">
                     {(pesanan.items || []).map((item, index) => (
                       <li
@@ -630,6 +689,7 @@ function logoutAdmin() {
                         <span>
                           {item.nama_barang} × {item.jumlah}
                         </span>
+
                         <span className="shrink-0">
                           {formatRupiah(item.subtotal)}
                         </span>
@@ -638,6 +698,7 @@ function logoutAdmin() {
                   </ul>
                 </div>
 
+                {/* TOTAL DAN TOMBOL AKSI */}
                 <div className="mt-4 flex flex-col justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center">
                   <div>
                     <p className="text-sm text-slate-500">Total</p>
@@ -646,48 +707,91 @@ function logoutAdmin() {
                     </p>
                   </div>
 
-                  {pesanan.status === 'menunggu_konfirmasi' &&
-                    pesanan.metode_pembayaran === 'COD' && (
-                      <button
-                        onClick={async () => {
-                          const yakin = window.confirm(
-                            'Pastikan uang tunai sudah benar-benar diterima. Konfirmasi pesanan ini?'
-                          );
-
-                          if (!yakin) return;
-
-                          try {
-                            const response = await fetch(
-                              `${API_PESANAN}/${encodeURIComponent(pesanan.kode_pesanan)}/konfirmasi-cod`,
-                              {
-                                method: 'POST',
-                                headers: {
-                                  Authorization: `Bearer ${adminToken}`,
-                                },
-                              }
+                  <div className="flex flex-wrap gap-2">
+                    {/* KONFIRMASI COD */}
+                    {pesanan.status === 'menunggu_konfirmasi' &&
+                      pesanan.metode_pembayaran === 'COD' && (
+                        <button
+                          onClick={async () => {
+                            const yakin = window.confirm(
+                              'Pastikan uang tunai sudah benar-benar diterima. Konfirmasi pesanan ini?'
                             );
 
-                            const data = await response.json();
+                            if (!yakin) return;
 
-                            if (!response.ok) {
-                              throw new Error(
-                                data.message || 'Konfirmasi COD gagal.'
+                            setAdminLoading(true);
+                            setAdminError('');
+
+                            try {
+                              const response = await fetch(
+                                `${API_PESANAN}/${encodeURIComponent(
+                                  pesanan.kode_pesanan
+                                )}/konfirmasi-cod`,
+                                {
+                                  method: 'POST',
+                                  headers: {
+                                    Authorization: `Bearer ${adminToken}`,
+                                  },
+                                }
                               );
-                            }
 
-                            await ambilPesananAdmin();
-                            tampilkanPesan('Pesanan COD berhasil dikonfirmasi.');
-                          } catch (err) {
-                            setAdminError(
-                              err.message || 'Konfirmasi COD gagal.'
-                            );
-                          }
-                        }}
-                        className="rounded-xl bg-emerald-700 px-4 py-3 font-semibold text-white hover:bg-emerald-800"
+                              const data = await response.json();
+
+                              if (!response.ok) {
+                                throw new Error(
+                                  data.message ||
+                                    'Konfirmasi COD gagal.'
+                                );
+                              }
+
+                              await ambilPesananAdmin();
+                              tampilkanPesan(
+                                'Pesanan COD berhasil dikonfirmasi.'
+                              );
+                            } catch (err) {
+                              setAdminError(
+                                err.message || 'Konfirmasi COD gagal.'
+                              );
+                            } finally {
+                              setAdminLoading(false);
+                            }
+                          }}
+                          disabled={adminLoading}
+                          className="rounded-xl bg-emerald-700 px-4 py-3 font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                        >
+                          Uang Diterima · Proses Pesanan
+                        </button>
+                      )}
+
+                    {/* SELESAIKAN PESANAN */}
+                    {pesanan.status === 'diproses' && (
+                      <button
+                        onClick={() =>
+                          ubahStatusPesanan(pesanan, 'selesai')
+                        }
+                        disabled={adminLoading}
+                        className="rounded-xl bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
                       >
-                        Uang Diterima · Proses Pesanan
+                        Selesaikan Pesanan
                       </button>
                     )}
+
+                    {/* BATALKAN PESANAN */}
+                    {[
+                      'menunggu_pembayaran',
+                      'menunggu_konfirmasi',
+                    ].includes(pesanan.status) && (
+                      <button
+                        onClick={() =>
+                          ubahStatusPesanan(pesanan, 'dibatalkan')
+                        }
+                        disabled={adminLoading}
+                        className="rounded-xl border border-red-300 px-4 py-3 font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        Batalkan Pesanan
+                      </button>
+                    )}
+                  </div>
                 </div>
               </article>
             ))
@@ -697,6 +801,7 @@ function logoutAdmin() {
     )}
   </section>
 )}
+
 
         {/* ================= KATALOG ================= */}
         {halaman === 'katalog' && (
