@@ -951,82 +951,225 @@ function logoutAdmin() {
         )}
 
         <div className="store-content">
+          {/* ================= KATALOG PELANGGAN ================= */}
           {halaman === 'katalog' && (
-            <>
-              <section className="page-heading">
-                <h2>Belanja kebutuhan harian</h2>
-                <p>Pilih barang yang kamu butuhkan dari Warung Nenek Yoyoh.</p>
-              </section>
-
-              <div className="category-grid" aria-label="Kategori barang">
-                {daftarKategori.map((kategori, index) => (
+            <section className="customer-catalog">
+              <div className="customer-hero">
+                <div className="customer-hero-copy">
+                  <span className="customer-hero-kicker">
+                    WARUNG NENEK YOYOH
+                  </span>
+                  <h1>
+                    Belanja harian,
+                    <br />
+                    jadi lebih mudah.
+                  </h1>
+                  <p>
+                    Temukan kebutuhan rumah tangga, cek harga dan stok,
+                    lalu tambahkan barang ke keranjang dengan mudah.
+                  </p>
                   <button
-                    key={kategori}
-                    className={`category-chip ${kategoriAktif === kategori ? 'selected' : ''}`}
-                    onClick={() => bukaKategori(kategori)}
+                    type="button"
+                    className="customer-hero-button"
+                    onClick={() =>
+                      document
+                        .getElementById('customer-products')
+                        ?.scrollIntoView({ behavior: 'smooth' })
+                    }
                   >
-                    <span className="category-chip-icon" aria-hidden="true">
-                      {index === 0 ? '▦' : '◈'}
-                    </span>
-                    {kategori}
+                    Mulai Belanja <span aria-hidden="true">↓</span>
                   </button>
-                ))}
+                  <div className="customer-hero-benefits">
+                    <span>✓ Harga terlihat jelas</span>
+                    <span>✓ Informasi stok tersedia</span>
+                  </div>
+                </div>
+
+                <div className="customer-hero-art" aria-hidden="true">
+                  <div className="customer-hero-circle" />
+                  <div className="customer-hero-bag">🛍️</div>
+                  <span className="customer-hero-float float-one">🌾</span>
+                  <span className="customer-hero-float float-two">🍜</span>
+                  <span className="customer-hero-float float-three">🫒</span>
+                </div>
               </div>
 
-              <section className="mt-7">
-                <div id="admin-panel" className="popular-heading">
-                  <h3>Daftar Barang</h3>
-                  <span>{hasilPencarian.length} barang</span>
+              <div className="customer-category-section">
+                <div className="customer-section-heading">
+                  <div>
+                    <h2>Mau belanja apa?</h2>
+                    <p>Pilih kategori untuk menemukan barang yang kamu cari.</p>
+                  </div>
                 </div>
+
+                <div className="customer-category-list">
+                  {daftarKategori.map((kategori) => {
+                    const nama = kategori.toLowerCase();
+                    const ikon =
+                      nama === 'semua'
+                        ? '▦'
+                        : nama.includes('beras')
+                          ? '🌾'
+                          : nama.includes('minyak')
+                            ? '🫒'
+                            : nama.includes('mie')
+                              ? '🍜'
+                              : nama.includes('sembako')
+                                ? '🧺'
+                                : '🛍️';
+
+                    return (
+                      <button
+                        key={kategori}
+                        type="button"
+                        onClick={() => bukaKategori(kategori)}
+                        className={`customer-category-chip ${
+                          kategoriAktif === kategori ? 'selected' : ''
+                        }`}
+                        aria-pressed={kategoriAktif === kategori}
+                      >
+                        <span className="customer-category-icon" aria-hidden="true">
+                          {ikon}
+                        </span>
+                        <span>{kategori}</span>
+                        {kategoriAktif === kategori && (
+                          <span className="customer-category-check">✓</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div
+                id="customer-products"
+                className="customer-products-section"
+              >
+                <div className="customer-section-heading products-heading">
+                  <div>
+                    <h2>Produk pilihan</h2>
+                    <p>Pilih barang yang kamu butuhkan hari ini.</p>
+                  </div>
+                  <span className="customer-product-count">
+                    {hasilPencarian.length} produk
+                  </span>
+                </div>
+
                 {loading ? (
-                  <p className="empty-message">Memuat data barang...</p>
+                  <div className="customer-state-message">
+                    <span className="customer-loading-icon">🛍️</span>
+                    <p>Sedang memuat produk...</p>
+                  </div>
                 ) : error ? (
-                  <div className="empty-message error-message" role="alert">
+                  <div className="customer-state-message customer-error">
                     <p>{error}</p>
-                    <button className="view-all-button" onClick={ambilBarang}>Coba lagi</button>
+                    <button type="button" onClick={ambilBarang}>
+                      Coba lagi
+                    </button>
                   </div>
                 ) : hasilPencarian.length === 0 ? (
-                  <p className="empty-message">Barang tidak ditemukan.</p>
+                  <div className="customer-state-message">
+                    <span className="customer-loading-icon">🔎</span>
+                    <h3>Barang belum ditemukan</h3>
+                    <p>Coba kata pencarian atau kategori lainnya.</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPencarian('');
+                        setKategoriAktif('Semua');
+                      }}
+                    >
+                      Lihat semua produk
+                    </button>
+                  </div>
                 ) : (
-                  <div className="product-grid">
-                    {hasilPencarian.map((item) => (
-                      <article className="product-tile" key={item.id}>
-                        <button
-                          className="product-picture"
-                          onClick={() => setBarangDipilih(item)}
-                          aria-label={`Lihat detail ${item.nama}`}
+                  <div className="customer-products-grid">
+                    {hasilPencarian.map((item) => {
+                      const stokTersedia = Number(item.stok) > 0;
+                      const namaKategori = (item.kategori || '').toLowerCase();
+                      const ikonProduk = namaKategori.includes('beras')
+                        ? '🌾'
+                        : namaKategori.includes('minyak')
+                          ? '🫒'
+                          : namaKategori.includes('mie')
+                            ? '🍜'
+                            : namaKategori.includes('sembako')
+                              ? '🧺'
+                              : '🛍️';
+
+                      return (
+                        <article
+                          key={item.id}
+                          className="customer-product-card"
                         >
-                          {item.foto ? <img src={item.foto} alt={item.nama} /> : '🛒'}
-                        </button>
-                        <div className="product-info">
-                          <div className="product-line">
-                            <div className="product-copy">
-                              <button className="product-name" onClick={() => setBarangDipilih(item)}>
-                                {item.nama}
-                              </button>
-                              <p className="product-price">
-                                {formatRupiah(item.harga)} / {item.satuan}
-                              </p>
-                            </div>
-                            <button
-                              className="product-add"
-                              onClick={() => tambahKeKeranjang(item)}
-                              disabled={Number(item.stok) <= 0}
-                              aria-label={`Tambahkan ${item.nama} ke keranjang`}
+                          <button
+                            type="button"
+                            className="customer-product-visual"
+                            onClick={() => setBarangDipilih(item)}
+                            aria-label={`Lihat detail ${item.nama}`}
+                          >
+                            {item.foto ? (
+                              <img
+                                src={item.foto}
+                                alt={item.nama}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="customer-product-placeholder">
+                                <span>{ikonProduk}</span>
+                                <small>
+                                  {item.kategori || 'Produk pilihan'}
+                                </small>
+                              </div>
+                            )}
+                            <span
+                              className={`customer-stock-badge ${
+                                stokTersedia ? 'in-stock' : 'out-stock'
+                              }`}
                             >
-                              +
+                              {stokTersedia ? 'Tersedia' : 'Stok habis'}
+                            </span>
+                          </button>
+
+                          <div className="customer-product-body">
+                            <span className="customer-product-category">
+                              {item.kategori || 'Lainnya'}
+                            </span>
+                            <button
+                              type="button"
+                              className="customer-product-name"
+                              onClick={() => setBarangDipilih(item)}
+                              title={item.nama}
+                            >
+                              {item.nama}
                             </button>
+                            <div className="customer-product-price">
+                              <strong>{formatRupiah(item.harga)}</strong>
+                              <span>/ {item.satuan}</span>
+                            </div>
+                            <div className="customer-product-footer">
+                              <span className="customer-stock-text">
+                                Stok: {item.stok} {item.satuan}
+                              </span>
+                              <button
+                                type="button"
+                                className="customer-add-button"
+                                onClick={() => tambahKeKeranjang(item)}
+                                disabled={!stokTersedia}
+                                aria-label={`Tambah ${item.nama} ke keranjang`}
+                              >
+                                <span aria-hidden="true">+</span>
+                                <span>Tambah</span>
+                              </button>
+                            </div>
                           </div>
-                          <p className="mt-2 text-xs text-slate-500">
-                            {Number(item.stok) > 0 ? `Stok ${item.stok} ${item.satuan}` : 'Stok habis'}
-                          </p>
-                        </div>
-                      </article>
-                    ))}
+                        </article>
+                      );
+                    })}
                   </div>
                 )}
-              </section>
-            </>
+              </div>
+            </section>
           )}
 
           {halaman === 'keranjang' && (
@@ -1651,86 +1794,127 @@ function logoutAdmin() {
         </div>
       </footer>
 
-      {/* ================= DETAIL BARANG ================= */}
+      {/* ================= DETAIL PRODUK PELANGGAN ================= */}
       {barangDipilih && (
         <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/50 p-4"
+          className="customer-detail-overlay"
           onClick={() => setBarangDipilih(null)}
         >
           <section
             role="dialog"
             aria-modal="true"
             aria-labelledby="judul-detail"
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl"
+            className="customer-detail-modal"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="relative flex h-56 items-center justify-center overflow-hidden bg-emerald-50 text-7xl">
+            <button
+              type="button"
+              className="customer-detail-close"
+              onClick={() => setBarangDipilih(null)}
+              aria-label="Tutup detail produk"
+            >
+              ×
+            </button>
+
+            <div className="customer-detail-media">
               {barangDipilih.foto ? (
                 <img
                   src={barangDipilih.foto}
                   alt={barangDipilih.nama}
-                  className="h-full w-full object-cover"
                 />
               ) : (
-                <span aria-hidden="true">🛒</span>
+                <div className="customer-detail-placeholder">
+                  <span aria-hidden="true">
+                    {barangDipilih.kategori?.toLowerCase().includes('beras')
+                      ? '🌾'
+                      : barangDipilih.kategori?.toLowerCase().includes('minyak')
+                        ? '🫒'
+                        : barangDipilih.kategori?.toLowerCase().includes('mie')
+                          ? '🍜'
+                          : barangDipilih.kategori?.toLowerCase().includes('sembako')
+                            ? '🧺'
+                            : '🛍️'}
+                  </span>
+                  <p>Foto produk belum tersedia</p>
+                </div>
               )}
-
-              <button
-                onClick={() => setBarangDipilih(null)}
-                aria-label="Tutup detail"
-                className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl shadow hover:bg-slate-100"
-              >
-                ×
-              </button>
+              <span className="customer-detail-photo-label">DETAIL PRODUK</span>
             </div>
 
-            <div className="p-6">
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                {barangDipilih.kategori}
-              </span>
+            <div className="customer-detail-content">
+              <div className="customer-detail-topline">
+                <span className="customer-detail-category">
+                  {barangDipilih.kategori || 'Lainnya'}
+                </span>
+                <span
+                  className={`customer-detail-stock-badge ${
+                    Number(barangDipilih.stok) > 0
+                      ? 'available'
+                      : 'unavailable'
+                  }`}
+                >
+                  <span className="customer-detail-stock-dot" />
+                  {Number(barangDipilih.stok) > 0
+                    ? 'Stok tersedia'
+                    : 'Stok habis'}
+                </span>
+              </div>
 
-              <h2 id="judul-detail" className="mt-4 text-2xl font-bold">
+              <h2 id="judul-detail" className="customer-detail-title">
                 {barangDipilih.nama}
               </h2>
 
-              <p className="mt-3 text-2xl font-bold text-emerald-700">
-                {formatRupiah(barangDipilih.harga)}
-                <span className="ml-1 text-sm font-normal text-slate-500">
-                  / {barangDipilih.satuan}
-                </span>
-              </p>
-
-              <div className="mt-5 rounded-xl bg-slate-50 p-4">
-                <p className="text-sm text-slate-500">Ketersediaan</p>
-                <p
-                  className={`mt-1 font-semibold ${
-                    Number(barangDipilih.stok) > 0
-                      ? 'text-emerald-700'
-                      : 'text-red-600'
-                  }`}
-                >
-                  {Number(barangDipilih.stok) > 0
-                    ? `${barangDipilih.stok} ${barangDipilih.satuan} tersedia`
-                    : 'Stok habis'}
-                </p>
+              <div className="customer-detail-price">
+                <strong>{formatRupiah(barangDipilih.harga)}</strong>
+                <span>/ {barangDipilih.satuan}</span>
               </div>
 
-              {barangDipilih.deskripsi && (
-                <div className="mt-5">
-                  <h3 className="font-semibold">Deskripsi</h3>
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
-                    {barangDipilih.deskripsi}
+              <div className="customer-detail-divider" />
+
+              <div className="customer-detail-inventory">
+                <div className="customer-detail-inventory-icon">
+                  <span aria-hidden="true">📦</span>
+                </div>
+                <div>
+                  <p className="customer-detail-label">Ketersediaan barang</p>
+                  <p
+                    className={`customer-detail-inventory-value ${
+                      Number(barangDipilih.stok) > 0
+                        ? 'available'
+                        : 'unavailable'
+                    }`}
+                  >
+                    {Number(barangDipilih.stok) > 0
+                      ? `${barangDipilih.stok} ${barangDipilih.satuan} tersedia`
+                      : 'Maaf, barang sedang habis'}
                   </p>
+                </div>
+              </div>
+
+              {barangDipilih.deskripsi?.trim() && (
+                <div className="customer-detail-description">
+                  <h3>Deskripsi produk</h3>
+                  <p>{barangDipilih.deskripsi}</p>
                 </div>
               )}
 
-              <button
-                onClick={() => tambahKeKeranjang(barangDipilih)}
-                disabled={Number(barangDipilih.stok) <= 0}
-                className="mt-6 w-full rounded-xl bg-emerald-700 px-4 py-3 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-              >
-                + Tambahkan ke Keranjang
-              </button>
+              <div className="customer-detail-footer">
+                <p>Harga per {barangDipilih.satuan}</p>
+                <button
+                  type="button"
+                  className="customer-detail-add-button"
+                  onClick={() => tambahKeKeranjang(barangDipilih)}
+                  disabled={Number(barangDipilih.stok) <= 0}
+                >
+                  <span aria-hidden="true">＋</span>
+                  {Number(barangDipilih.stok) > 0
+                    ? 'Tambahkan ke Keranjang'
+                    : 'Stok Habis'}
+                </button>
+                <p className="customer-detail-note">
+                  Periksa jumlah dan total belanja kembali di keranjang.
+                </p>
+              </div>
             </div>
           </section>
         </div>
