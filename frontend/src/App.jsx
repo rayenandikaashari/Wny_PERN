@@ -1173,145 +1173,602 @@ function logoutAdmin() {
           )}
 
           {halaman === 'keranjang' && (
-            <section className="cart-page">
-              <div className="page-heading">
-                <h2>Keranjang Belanja</h2>
-                <p>Periksa barang dan jumlah belanjaanmu.</p>
+            <section className="customer-cart-page">
+              <div className="customer-cart-heading">
+                <div className="customer-cart-title-row">
+                  <div>
+                    <h1>Keranjang Belanja</h1>
+                    <p>Periksa barang pilihanmu sebelum melanjutkan.</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="customer-back-button"
+                    onClick={bukaKatalog}
+                  >
+                    <span aria-hidden="true">←</span>
+                    Kembali Belanja
+                  </button>
+                </div>
               </div>
+
               {keranjang.length === 0 ? (
-                <div className="empty-cart">
-                  <span aria-hidden="true">🛒</span>
-                  <h3>Keranjang masih kosong</h3>
-                  <p>Yuk, pilih barang yang kamu butuhkan.</p>
-                  <button className="checkout-button" onClick={bukaKatalog}>Mulai Belanja</button>
+                <div className="customer-cart-empty">
+                  <div className="customer-cart-empty-icon" aria-hidden="true">
+                    🛍️
+                  </div>
+                  <h2>Keranjangmu masih kosong</h2>
+                  <p>
+                    Belum ada barang yang dipilih. Yuk, cari kebutuhan
+                    sehari-hari yang kamu perlukan.
+                  </p>
+                  <button
+                    type="button"
+                    className="customer-cart-primary"
+                    onClick={bukaKatalog}
+                  >
+                    Mulai Belanja
+                  </button>
                 </div>
               ) : (
-                <>
-                  <div className="cart-list">
-                    {keranjang.map((item) => (
-                      <article className="cart-item-row" key={item.id}>
-                        <div className="cart-product-photo">
-                          {item.foto ? <img src={item.foto} alt={item.nama} /> : '🛒'}
-                        </div>
-                        <div className="cart-item-info">
-                          <h3>{item.nama}</h3>
-                          <p>{formatRupiah(item.harga)} / {item.satuan} · {formatRupiah(item.harga * item.jumlah)}</p>
-                        </div>
-                        <div className="quantity-control">
-                          <button
-                            onClick={() => item.jumlah === 1 ? hapusDariKeranjang(item.id) : ubahJumlah(item.id, item.jumlah - 1)}
-                            aria-label={`Kurangi ${item.nama}`}
-                          >
-                            −
-                          </button>
-                          <span>{item.jumlah}</span>
-                          <button
-                            onClick={() => ubahJumlah(item.id, item.jumlah + 1)}
-                            disabled={item.jumlah >= item.stok}
-                            aria-label={`Tambah ${item.nama}`}
-                          >
-                            +
-                          </button>
-                          <button onClick={() => hapusDariKeranjang(item.id)} aria-label={`Hapus ${item.nama}`}>×</button>
-                        </div>
-                      </article>
-                    ))}
+                <div className="customer-cart-layout">
+                  <div className="customer-cart-main">
+                    <div className="customer-cart-list-heading">
+                      <div>
+                        <h2>Barang Pilihan</h2>
+                        <p>{jumlahBarang} barang dalam keranjang</p>
+                      </div>
+                      <span className="customer-cart-count">
+                        {keranjang.length} produk
+                      </span>
+                    </div>
+
+                    <div className="customer-cart-list">
+                      {keranjang.map((item) => (
+                        <article
+                          key={item.id}
+                          className="customer-cart-item"
+                        >
+                          <div className="customer-cart-item-image">
+                            {item.foto ? (
+                              <img src={item.foto} alt={item.nama} />
+                            ) : (
+                              <span aria-hidden="true">
+                                {item.kategori?.toLowerCase().includes('beras')
+                                  ? '🌾'
+                                  : item.kategori?.toLowerCase().includes('minyak')
+                                    ? '🫒'
+                                    : item.kategori?.toLowerCase().includes('mie')
+                                      ? '🍜'
+                                      : '🛍️'}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="customer-cart-item-info">
+                            <span className="customer-cart-item-category">
+                              {item.kategori || 'Produk pilihan'}
+                            </span>
+                            <h3>{item.nama}</h3>
+                            <p className="customer-cart-unit-price">
+                              {formatRupiah(item.harga)} / {item.satuan}
+                            </p>
+                            <strong className="customer-cart-line-total">
+                              {formatRupiah(item.harga * item.jumlah)}
+                            </strong>
+                          </div>
+
+                          <div className="customer-cart-item-actions">
+                            <div className="customer-quantity-control">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  item.jumlah === 1
+                                    ? hapusDariKeranjang(item.id)
+                                    : ubahJumlah(item.id, item.jumlah - 1)
+                                }
+                                aria-label={`Kurangi jumlah ${item.nama}`}
+                              >
+                                −
+                              </button>
+                              <span>{item.jumlah}</span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  ubahJumlah(item.id, item.jumlah + 1)
+                                }
+                                disabled={item.jumlah >= item.stok}
+                                aria-label={`Tambah jumlah ${item.nama}`}
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            <button
+                              type="button"
+                              className="customer-cart-remove"
+                              onClick={() => hapusDariKeranjang(item.id)}
+                              aria-label={`Hapus ${item.nama} dari keranjang`}
+                            >
+                              <span aria-hidden="true">×</span>
+                              Hapus
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+
                   </div>
-                  <aside className="cart-summary">
-                    <div className="cart-summary-total">
-                      <span>Total ({jumlahBarang} barang)</span>
+
+                  <aside className="customer-cart-summary">
+                    <div className="customer-cart-summary-heading">
+                      <div>
+                        <h2>Ringkasan Belanja</h2>
+                        <p>Rincian total belanja kamu</p>
+                      </div>
+                      <span aria-hidden="true">▤</span>
+                    </div>
+
+                    <div className="customer-cart-summary-row">
+                      <span>Jumlah barang</span>
+                      <strong>{jumlahBarang} item</strong>
+                    </div>
+                    <div className="customer-cart-summary-row">
+                      <span>Jenis produk</span>
+                      <strong>{keranjang.length} produk</strong>
+                    </div>
+                    <div className="customer-cart-summary-divider" />
+
+                    <div className="customer-cart-grand-total">
+                      <span>Total belanja</span>
                       <strong>{formatRupiah(totalBelanja)}</strong>
                     </div>
-                    <button className="checkout-button" onClick={() => setHalaman('checkout')}>
+                    <p className="customer-cart-summary-note">
+                      Harga dan stok akan diperiksa kembali saat pesanan
+                      dibuat.
+                    </p>
+                    <button
+                      type="button"
+                      className="customer-cart-primary"
+                      onClick={() => setHalaman('checkout')}
+                    >
                       Lanjutkan Checkout
+                      <span aria-hidden="true">→</span>
                     </button>
+                    <div className="customer-cart-safe-note">
+                      <span aria-hidden="true">✓</span>
+                      Periksa pesanan sebelum melakukan pembayaran
+                    </div>
                   </aside>
-                </>
+                </div>
               )}
             </section>
           )}
 
           {halaman === 'checkout' && (
-            <section className="cart-page">
-              <div className="page-heading">
-                <h2>Checkout</h2>
-                <p>Pilih metode pembayaran untuk membuat pesanan.</p>
-              </div>
+            <section className="customer-checkout-page">
+              <header className="customer-checkout-heading">
+                <div>
+                  <span className="customer-checkout-eyebrow">
+                    LANGKAH TERAKHIR
+                  </span>
+                  <h1>Checkout</h1>
+                  <p>
+                    Periksa pesanan dan pilih metode pembayaran sebelum
+                    membuat pesanan.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="customer-page-back"
+                  onClick={bukaKeranjang}
+                >
+                  <span aria-hidden="true">←</span>
+                  Kembali ke Keranjang
+                </button>
+              </header>
+
               {keranjang.length === 0 ? (
-                <div className="empty-cart">
-                  <p>Keranjang kosong. Tambahkan barang sebelum checkout.</p>
-                  <button className="checkout-button" onClick={bukaKatalog}>Kembali ke katalog</button>
+                <div className="customer-checkout-empty">
+                  <span aria-hidden="true">🛒</span>
+                  <h2>Keranjang masih kosong</h2>
+                  <p>Tambahkan barang terlebih dahulu sebelum checkout.</p>
+                  <button
+                    type="button"
+                    className="customer-checkout-primary"
+                    onClick={bukaKatalog}
+                  >
+                    Mulai Belanja
+                  </button>
                 </div>
               ) : (
-                <div className="cart-summary">
-                  <h3 className="font-bold">Metode Pembayaran</h3>
-                  {['QRIS', 'COD'].map((metode) => (
-                    <label className="mt-4 flex cursor-pointer gap-3 rounded-lg border border-slate-200 p-4" key={metode}>
-                      <input
-                        type="radio"
-                        name="metode"
-                        value={metode}
-                        checked={metodePembayaran === metode}
-                        onChange={() => setMetodePembayaran(metode)}
-                      />
-                      <span>{metode === 'COD' ? 'COD / Tunai di Warung' : 'QRIS'}</span>
-                    </label>
-                  ))}
-                  <div className="cart-summary-total mt-5">
-                    <span>Total ({jumlahBarang} barang)</span>
-                    <strong>{formatRupiah(totalBelanja)}</strong>
+                <div className="customer-checkout-layout">
+                  <div className="customer-checkout-main">
+                    <section className="customer-checkout-panel">
+                      <div className="customer-checkout-panel-heading">
+                        <span className="customer-checkout-step">01</span>
+                        <div>
+                          <h2>Metode Pembayaran</h2>
+                          <p>Pilih salah satu metode pembayaran.</p>
+                        </div>
+                      </div>
+
+                      <div className="customer-payment-options">
+                        <label
+                          className={`customer-payment-option ${
+                            metodePembayaran === 'QRIS' ? 'selected' : ''
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="metode"
+                            value="QRIS"
+                            checked={metodePembayaran === 'QRIS'}
+                            onChange={() => setMetodePembayaran('QRIS')}
+                          />
+                          <span className="customer-payment-icon qris-icon">
+                            ▦
+                          </span>
+                          <span className="customer-payment-copy">
+                            <strong>QRIS</strong>
+                            <span>
+                              Pembayaran menggunakan QRIS resmi dari warung.
+                            </span>
+                          </span>
+                          <span className="customer-payment-radio" />
+                        </label>
+
+                        <label
+                          className={`customer-payment-option ${
+                            metodePembayaran === 'COD' ? 'selected' : ''
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="metode"
+                            value="COD"
+                            checked={metodePembayaran === 'COD'}
+                            onChange={() => setMetodePembayaran('COD')}
+                          />
+                          <span className="customer-payment-icon cod-icon">
+                            🏪
+                          </span>
+                          <span className="customer-payment-copy">
+                            <strong>COD / Tunai di Warung</strong>
+                            <span>
+                              Bayar langsung kepada penjaga warung.
+                            </span>
+                          </span>
+                          <span className="customer-payment-radio" />
+                        </label>
+                      </div>
+
+                      <div className="customer-payment-notice">
+                        <span aria-hidden="true">ⓘ</span>
+                        <p>
+                          {metodePembayaran === 'QRIS'
+                            ? 'Gunakan QRIS resmi yang disediakan warung. Pembayaran perlu dikonfirmasi dan tidak terverifikasi otomatis oleh aplikasi.'
+                            : 'Siapkan pembayaran tunai dan temui penjaga warung agar pembayaran dapat dikonfirmasi.'}
+                        </p>
+                      </div>
+
+                      <div className="customer-checkout-deadline">
+                        <span aria-hidden="true">◷</span>
+                        <div>
+                          <strong>Batas waktu pembayaran 5 menit</strong>
+                          <p>Waktu dimulai setelah pesanan berhasil dibuat.</p>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="customer-checkout-panel">
+                      <div className="customer-checkout-panel-heading">
+                        <span className="customer-checkout-step">02</span>
+                        <div>
+                          <h2>Barang yang Dipesan</h2>
+                          <p>
+                            {jumlahBarang} item dari {keranjang.length} jenis
+                            produk.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="customer-checkout-items">
+                        {keranjang.map((item) => (
+                          <div
+                            key={item.id}
+                            className="customer-checkout-item"
+                          >
+                            <div className="customer-checkout-item-image">
+                              {item.foto ? (
+                                <img src={item.foto} alt={item.nama} />
+                              ) : (
+                                <span aria-hidden="true">🛍️</span>
+                              )}
+                            </div>
+                            <div className="customer-checkout-item-copy">
+                              <strong>{item.nama}</strong>
+                              <span>
+                                {formatRupiah(item.harga)} / {item.satuan}
+                              </span>
+                              <small>Jumlah: {item.jumlah}</small>
+                            </div>
+                            <strong className="customer-checkout-item-total">
+                              {formatRupiah(item.harga * item.jumlah)}
+                            </strong>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
                   </div>
-                  <button
-                    className="checkout-button"
-                    onClick={buatPesanan}
-                    disabled={checkoutLoading}
-                  >
-                    {checkoutLoading ? 'Membuat Pesanan...' : 'Buat Pesanan'}
-                  </button>
-                  <button className="view-all-button mt-3" onClick={bukaKeranjang}>Kembali ke keranjang</button>
+
+                  <aside className="customer-checkout-summary">
+                    <div className="customer-checkout-summary-top">
+                      <span>RINGKASAN PESANAN</span>
+                      <div className="customer-checkout-summary-icon">✓</div>
+                    </div>
+                    <h2>Hampir selesai!</h2>
+                    <p className="customer-checkout-summary-description">
+                      Pastikan pilihan pembayaran dan jumlah belanja sudah
+                      sesuai.
+                    </p>
+                    <div className="customer-checkout-summary-row">
+                      <span>Jumlah barang</span>
+                      <strong>{jumlahBarang} item</strong>
+                    </div>
+                    <div className="customer-checkout-summary-row">
+                      <span>Jenis produk</span>
+                      <strong>{keranjang.length} produk</strong>
+                    </div>
+                    <div className="customer-checkout-summary-row">
+                      <span>Pembayaran</span>
+                      <strong>{metodePembayaran}</strong>
+                    </div>
+                    <div className="customer-checkout-summary-divider" />
+                    <div className="customer-checkout-total">
+                      <span>Total pembayaran</span>
+                      <strong>{formatRupiah(totalBelanja)}</strong>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={buatPesanan}
+                      disabled={checkoutLoading || keranjang.length === 0}
+                      className="customer-checkout-primary"
+                    >
+                      {checkoutLoading
+                        ? 'Membuat pesanan...'
+                        : 'Buat Pesanan'}
+                      {!checkoutLoading && (
+                        <span aria-hidden="true">→</span>
+                      )}
+                    </button>
+                    <p className="customer-checkout-terms">
+                      Dengan membuat pesanan, kamu dapat memeriksa status
+                      pembayaran melalui halaman detail pesanan.
+                    </p>
+                  </aside>
                 </div>
               )}
             </section>
           )}
 
           {halaman === 'pesanan' && pesananAktif && (
-            <section className="cart-page">
-              <div className="page-heading">
-                <h2>Detail Pesanan</h2>
-                <p>Kode pesanan: <strong>{pesananAktif.kode_pesanan}</strong></p>
-              </div>
-              <div className="cart-summary">
-                <p>Status: <strong>{labelStatus(pesananAktif.status)}</strong></p>
-                <p className="mt-2">Metode: {pesananAktif.metode_pembayaran}</p>
-                <p className="mt-2 font-bold">{formatRupiah(pesananAktif.total)}</p>
-                {statusMenunggu && (
-                  <div className="mt-4 rounded-lg bg-amber-50 p-4 text-sm">
-                    <p>
-                      {pesananAktif.metode_pembayaran === 'QRIS'
-                        ? 'Gunakan QRIS resmi yang disediakan warung. Pembayaran belum otomatis terverifikasi.'
-                        : 'Temui penjaga warung untuk membayar tunai dan meminta konfirmasi.'}
-                    </p>
-                    <p className="mt-2 font-bold">Sisa waktu: {formatWaktu(detikTersisa)}</p>
-                  </div>
-                )}
-                {pesananAktif.status === 'dibatalkan' && (
-                  <p className="mt-4 text-sm text-red-700">Pesanan dibatalkan dan stok telah dikembalikan.</p>
-                )}
-                <h3 className="mt-5 font-bold">Rincian Barang</h3>
-                {(pesananAktif.items || []).map((item, index) => (
-                  <div className="mt-2 flex justify-between gap-3 text-sm" key={`${item.barang_id}-${index}`}>
-                    <span>{item.nama_barang || item.nama} × {item.jumlah}</span>
-                    <span>{formatRupiah(item.subtotal ?? Number(item.harga) * Number(item.jumlah))}</span>
-                  </div>
-                ))}
+            <section className="customer-order-page">
+              <header className="customer-order-heading">
+                <div>
+                  <span className="customer-order-eyebrow">
+                    INFORMASI PESANAN
+                  </span>
+                  <h1>Detail Pesanan</h1>
+                  <p>
+                    Simpan kode pesanan untuk memeriksa status transaksi kamu.
+                  </p>
+                </div>
                 <button
-                  className="checkout-button mt-5"
+                  type="button"
+                  className="customer-page-back"
+                  onClick={async () => {
+                    await ambilBarang();
+                    bukaKatalog();
+                  }}
+                >
+                  <span aria-hidden="true">←</span>
+                  Kembali ke Katalog
+                </button>
+              </header>
+
+              <section className="customer-order-status-card">
+                <div className="customer-order-status-top">
+                  <div className="customer-order-status-symbol">
+                    {pesananAktif.status === 'dibatalkan'
+                      ? '×'
+                      : ['dibayar', 'diproses', 'selesai'].includes(
+                          pesananAktif.status
+                        )
+                        ? '✓'
+                        : '◷'}
+                  </div>
+                  <div className="customer-order-status-copy">
+                    <span>Status pesanan</span>
+                    <h2>{labelStatus(pesananAktif.status)}</h2>
+                    <p>
+                      {pesananAktif.status === 'dibatalkan'
+                        ? 'Pesanan ini telah dibatalkan.'
+                        : pesananAktif.status === 'selesai'
+                          ? 'Pesanan telah selesai diproses.'
+                          : pesananAktif.status === 'diproses'
+                            ? 'Pesanan sedang diproses oleh warung.'
+                            : pesananAktif.status === 'dibayar'
+                              ? 'Pembayaran telah tercatat.'
+                              : pesananAktif.status === 'menunggu_konfirmasi'
+                                ? 'Menunggu konfirmasi pembayaran dari warung.'
+                                : 'Selesaikan pembayaran sebelum batas waktunya.'}
+                    </p>
+                  </div>
+                  <span
+                    className={`customer-order-status-badge status-${pesananAktif.status}`}
+                  >
+                    {labelStatus(pesananAktif.status)}
+                  </span>
+                </div>
+
+                <div className="customer-order-status-meta">
+                  <div>
+                    <span>Metode pembayaran</span>
+                    <strong>
+                      {pesananAktif.metode_pembayaran === 'QRIS'
+                        ? 'QRIS'
+                        : 'COD / Tunai di Warung'}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Total pesanan</span>
+                    <strong>{formatRupiah(pesananAktif.total)}</strong>
+                  </div>
+                </div>
+
+                <div className="customer-order-code">
+                  <div>
+                    <span>Kode pesanan</span>
+                    <strong>{pesananAktif.kode_pesanan}</strong>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigator.clipboard?.writeText) {
+                        navigator.clipboard
+                          .writeText(pesananAktif.kode_pesanan)
+                          .then(() => tampilkanPesan('Kode pesanan disalin.'))
+                          .catch(() =>
+                            tampilkanPesan(
+                              `Kode pesanan: ${pesananAktif.kode_pesanan}`
+                            )
+                          );
+                      } else {
+                        tampilkanPesan(
+                          `Kode pesanan: ${pesananAktif.kode_pesanan}`
+                        );
+                      }
+                    }}
+                  >
+                    Salin kode
+                  </button>
+                </div>
+              </section>
+
+              {statusMenunggu && (
+                <section
+                  className={`customer-order-timer ${
+                    detikTersisa <= 0 ? 'timer-expired' : ''
+                  }`}
+                >
+                  <div className="customer-order-timer-icon" aria-hidden="true">
+                    ◷
+                  </div>
+                  <div className="customer-order-timer-copy">
+                    <h3>
+                      {detikTersisa > 0
+                        ? 'Selesaikan pembayaran'
+                        : 'Batas waktu pembayaran habis'}
+                    </h3>
+                    <p>
+                      {detikTersisa > 0
+                        ? pesananAktif.metode_pembayaran === 'QRIS'
+                          ? 'Gunakan QRIS resmi dari warung. Pembayaran belum otomatis terverifikasi.'
+                          : 'Temui penjaga warung untuk membayar tunai dan meminta konfirmasi.'
+                        : 'Pesanan sedang menunggu pembaruan status dari server.'}
+                    </p>
+                  </div>
+                  <div className="customer-order-countdown">
+                    <span>Sisa waktu</span>
+                    <strong>{formatWaktu(detikTersisa)}</strong>
+                  </div>
+                </section>
+              )}
+
+              {pesananAktif.status === 'dibatalkan' && (
+                <div className="customer-order-message cancelled-message">
+                  <strong>Pesanan dibatalkan</strong>
+                  <p>
+                    Pesanan sudah dibatalkan. Stok yang sebelumnya dicadangkan
+                    akan ditangani oleh backend.
+                  </p>
+                </div>
+              )}
+
+              {['dibayar', 'diproses', 'selesai'].includes(
+                pesananAktif.status
+              ) && (
+                <div className="customer-order-message success-message">
+                  <strong>Informasi pesanan diperbarui</strong>
+                  <p>
+                    Status pesanan ini sudah tercatat pada sistem warung.
+                  </p>
+                </div>
+              )}
+
+              <section className="customer-order-items-panel">
+                <div className="customer-order-panel-heading">
+                  <div>
+                    <h2>Rincian Barang</h2>
+                    <p>Daftar barang yang ada dalam pesanan ini.</p>
+                  </div>
+                  <span className="customer-order-items-count">
+                    {(pesananAktif.items || []).length} produk
+                  </span>
+                </div>
+
+                <div className="customer-order-items-list">
+                  {(pesananAktif.items || []).map((item, index) => (
+                    <div
+                      key={`${item.barang_id}-${index}`}
+                      className="customer-order-item"
+                    >
+                      <div className="customer-order-item-icon" aria-hidden="true">
+                        🛍️
+                      </div>
+                      <div className="customer-order-item-copy">
+                        <strong>{item.nama_barang || item.nama}</strong>
+                        <span>Jumlah: {item.jumlah}</span>
+                      </div>
+                      <strong className="customer-order-item-price">
+                        {formatRupiah(
+                          item.subtotal ??
+                            Number(item.harga) * Number(item.jumlah)
+                        )}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="customer-order-total-row">
+                  <span>Total pembayaran</span>
+                  <strong>{formatRupiah(pesananAktif.total)}</strong>
+                </div>
+              </section>
+
+              <div className="customer-order-actions">
+                <button
+                  type="button"
+                  className="customer-order-refresh"
                   onClick={perbaruiStatusPesanan}
                   disabled={memuatStatus}
                 >
-                  {memuatStatus ? 'Memeriksa Status...' : 'Perbarui Status'}
+                  <span aria-hidden="true">↻</span>
+                  {memuatStatus
+                    ? 'Memeriksa status...'
+                    : 'Perbarui Status'}
                 </button>
-                <button className="view-all-button mt-3" onClick={bukaKatalog}>Kembali ke Katalog</button>
+                <button
+                  type="button"
+                  className="customer-order-return"
+                  onClick={async () => {
+                    await ambilBarang();
+                    bukaKatalog();
+                  }}
+                >
+                  Kembali ke Katalog
+                  <span aria-hidden="true">→</span>
+                </button>
               </div>
             </section>
           )}
